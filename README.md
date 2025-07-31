@@ -67,7 +67,7 @@ This will launch the API locally, typically on `http://localhost:5000` or the po
 
 ## API Testing
 
-Automated API tests are written using **Cypress** and follow a **data-driven testing approach** using JSON test data.
+Automated API tests are written using **Cypress** and follow a **data-driven testing approach** using JSON test data the test coverage only covers user module. To test if user can login, register and read, edit and delete.
 
 ### Sample Test Data
 

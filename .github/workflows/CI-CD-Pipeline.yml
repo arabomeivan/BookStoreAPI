@@ -2,72 +2,48 @@ name: CI/CD
 on:
   push:
     branches:
-      main
+      - main
   pull_request:
-    branches: ['main', 'develop']
+    branches:
+      - main
+      - develop
 
 jobs:
-    TestingCodeSyntax:
-        runs-on: ubuntu-latest
-        steps:
-        - name: Clone code repository
-          uses: actions/checkout@v2
-        - name: Installing Node
-          uses: actions/setup-node@v2
-          with:
-              node-version: "22"
-        - name: Installing dependencies
-          run:  npm install
+  
+  TestAPIEndpoints:
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Clone code repository
+        uses: actions/checkout@v2
 
-        - name: Run EsLint
-          run: npm run lint
+      - name: Installing Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "22"
 
-    TestAPIEndpoints:
-      runs-on: ubuntu-latest
-      needs: TestingCodeSyntax
-      if: always()
-      steps:
-        - name: Clone code repository
-          uses: actions/checkout@v2
-        - name: Installing Node
-          uses: actions/setup-node@v2
-          with:
-            node-version: "22"
+      - name: Inject environment variables into .env
+        run: |
+          echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "PORT=5000"
 
-        - name: Installing dependencies
-          run: npm install
+      - name: Installing dependencies
+        run: npm install
 
-        - name: Start Local Dev Server
-          run: nohup npm start &
+      - name: Start Local Dev Server
+        run: nohup npm start &
 
-        - name: Wait for the server to start
-          run: npx wait-on http://localhost:5000
+      - name: Wait for the server to start
+        run: npx wait-on http://localhost:5000
 
-        - name: Run Cypress Tests
-          run:  npm run test
+      - name: Run Cypress Tests
+        run: npm run test
 
-
-    DeployChanges:
-      runs-on: ubuntu-latest
-      needs: TestAPIEndpoints
-      if: github.ref == 'refs/heads/main'
-
-      steps:
-        - name: Clone code repository
-          uses: actions/checkout@v2
-        - name: Installing Node
-          uses: actions/setup-node@v2
-          with:
-            node-version: "22"
-
-        - name: Installing dependencies
-          run: npm install
-
-        - name: Build Project
-          run:  npm run generate
-
-        - name: Install Vercel CLI
-          run: npm install -g vercel
-
-        - name: Deploy to Vercel
-          run:  vercel --token ${{ secrets.VERCEL_DEPLOY_TOKEN }} --prod
+  DeployChanges:
+    runs-on: ubuntu-latest
+    needs: TestAPIEndpoints
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}

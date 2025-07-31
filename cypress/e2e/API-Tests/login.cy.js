@@ -1,19 +1,55 @@
-import loginData from "../../fixtures/login.json";
+import {invalidCreds, validCreds} from "../../fixtures/login";
+
+//Tests User Login API Endpoints with Positive and Negative Scenarios
 describe('Login', () => {
-  it('Test User Login with Invalid Credentials', () => {
-    cy.fixture('login').then((loginData) => {
+  it('Test user can login with invalid credentials', () => {
       cy.request({
         method: 'POST',
-        url: '/login', // adjust this if your login route differs
-        failOnStatusCode: false, // prevent Cypress from failing on 4xx/5xx responses
+        url: '/login', // adjusted to match your Express route structure
+        failOnStatusCode: false,
         body: {
-          email: loginData.email,
-          password: loginData.password
+          email: invalidCreds.email,
+          password: invalidCreds.password
         }
       }).should((response) => {
-        expect(response.status).to.eq(401); // or whatever invalid creds return
-        expect(response.body).to.have.property('error');
+        expect(response.status).to.eq(404);
+        expect(response.body).to.have.property('success', false);
+        expect(response.body).to.have.property('message', 'User not found');
       });
-    });
+    
+  });
+
+  it('Test user can login with no credentials', () => {
+      cy.request({
+        method: 'POST',
+        url: '/login', // adjusted to match your Express route structure
+        failOnStatusCode: false,
+        body: {
+          email: "",
+          password: ""
+        }
+      }).should((response) => {
+        expect(response.status).to.eq(400);
+        expect(response.body).to.have.property('success', false);
+        expect(response.body).to.have.property('message', 'Email and password are required');
+      });
+    
+  });
+
+  it('Test user can login with valid credentials', () => {
+    
+      cy.request({
+        method: 'POST',
+        url: '/login', // adjusted to match your Express route structure
+        failOnStatusCode: false,
+        body: {
+          email: validCreds.email,
+          password: validCreds.password
+        }
+      }).should((response) => {
+        expect(response.status).to.eq(201);
+        expect(response.body).to.have.property('success', true);
+        expect(response.body).to.have.property('message', 'User not found');
+      });
   });
 });

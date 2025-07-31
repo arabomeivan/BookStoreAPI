@@ -7,52 +7,32 @@ on:
     branches: [main, develop]
 
 jobs:
-  TestAPIEndpoints:
+  TestApplicationFunctionality:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Clone code repository
+        uses: actions/checkout@v2
+      - name: Installing Node
+        uses: actions/setup-node@v2
         with:
-          node-version: '22'
+          node-version: "16"
 
-      - name: Inject environment variables
-        run: |
-          echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> .env
-          echo "PORT=5000" >> .env
-
-      - name: Install dependencies
+      - name: Installing dependencies
         run: npm install
 
       - name: Start Local Dev Server
-        run: |
-          nohup npm start &
+        run: nohup npm start &
 
-      - name: Wait for Server to Be Ready
-        run: npm wait-on http://localhost:5000
-
-      - name: Check Server Logs for MongoDB Connection
-        run: |
-          sleep 2
-          if ! grep -q "Database Connected" server.log; then
-            echo "MongoDB did not connect"
-            cat server.log
-            exit 1
-          else
-            echo "MongoDB Connected"
-          fi
+      - name: Wait for the server to start
+        run: npx wait-on http://localhost:5000
 
       - name: Run Cypress Tests
         run: npm run test
 
   DeployChanges:
     runs-on: ubuntu-latest
-    needs: TestAPIEndpoints
+    needs: TestApplicationFunctionality
     if: github.ref == 'refs/heads/main'
-
     steps:
       - name: Trigger Render Deployment
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

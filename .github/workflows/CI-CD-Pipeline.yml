@@ -9,9 +9,21 @@ on:
 jobs:
   TestApplicationFunctionality:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
     env:
-      MONGODB_URL: ${{ secrets.MONGODB_URL }}
-      # add other required secrets here, e.g. JWT_SECRET, etc.
+      # Point to the locally running MongoDB service
+      MONGODB_URL: mongodb://127.0.0.1:27017/bookstore_test
+      # include other secrets if needed, e.g. JWT_SECRET
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,28 +34,44 @@ jobs:
           node-version: 16
           cache: 'npm'
 
-      - name: Prepare environment file
-        run: |
-          cp .env.example .env
-          # If your .env.example uses placeholders like ${MONGODB_URL}, substitute them:
-          # This requires that the placeholders are in shell-expandable form.
-          envsubst < .env.example > .env || true
-        env:
-          MONGODB_URL: ${{ secrets.MONGODB_URL }}
-          # include any other secret here that needs injecting into .env
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Start local API server in background and wait for readiness
+      - name: Wait for MongoDB to be healthy
         run: |
-          npm start &                    # launch server in background
-          npx wait-on http://localhost:5000 --timeout 60000
-        # adjust the URL and port if your API listens elsewhere
+          echo "Waiting for MongoDB to be ready..."
+          for i in {1..30}; do
+            if mongo --host localhost --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; then
+              echo "MongoDB is up"
+              break
+            fi
+            echo "MongoDB not ready yet, retrying..."
+            sleep 2
+          done
+
+      - name:  Seed test data
+        run: |
+          # If you have a seeding script, invoke it here.
+          # Example: node scripts/seedTestData.js
+          echo "Skipping seeding unless script exists."
+
+      - name: Start backend server in background
+        run: |
+          npm start &
+          # wait for the server to become reachable
+          n=0
+          until curl --silent --fail http://localhost:5000/health || [ $n -ge 30 ]; do
+            echo "Waiting for backend to be up..."
+            n=$((n+1))
+            sleep 2
+          done
+          if [ $n -ge 30 ]; then
+            echo "Backend did not start in time" >&2
+            exit 1
+          fi
 
       - name: Run Cypress API tests
         run: npm run test
-        # make sure "test" in package.json invokes Cypress, e.g. "cypress run"
 
   DeployChanges:
     needs: TestApplicationFunctionality

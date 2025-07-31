@@ -6,7 +6,7 @@ describe('Registering User', () => {
   it('Test user register with no data', () => {
       cy.request({
         method: 'POST',
-        url: '/register', // adjusted to match your Express route structure
+        url: '/api/users/register', // adjusted to match your Express route structure
         failOnStatusCode: false,
         body: {
           name: "",
@@ -25,7 +25,7 @@ describe('Registering User', () => {
     cy.fixture('register').then((registerData) => {
       cy.request({
         method: 'POST',
-        url: '/register',
+        url: '/api/users/register',
         failOnStatusCode: false,
         body: {
           email: registerData.email,
@@ -42,7 +42,7 @@ describe('Registering User', () => {
   
 
   it('Test user registers with valid data using dynamic email', () => {
-  cy.fixture('register').then((registerData) => {
+  cy.fixture('/api/users/register').then((registerData) => {
     // Add timestamp to email to avoid duplicate registration
     const dynamicEmail = `testuser${Date.now()}@example.com`;
 
@@ -55,7 +55,7 @@ describe('Registering User', () => {
 
     cy.request({
       method: 'POST',
-      url: '/register',
+      url: '/api/users/register',
       failOnStatusCode: false,
       body: {
         name: user.name,
@@ -77,7 +77,7 @@ describe('Registering User', () => {
     cy.fixture('register').then((registerData) => {
       cy.request({
         method: 'POST',
-        url: '/register',
+        url: '/api/users/register',
         failOnStatusCode: false,
         body: {
          name: registerData.name,

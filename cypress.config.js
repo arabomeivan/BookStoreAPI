@@ -6,6 +6,6 @@ module.exports = defineConfig({
       // implement node event listeners here
        // Ensure this matches your server's URL
     },
-    baseUrl: 'http://localhost:5000/api/users',
+    baseUrl: 'http://localhost:5000',
   },
 });

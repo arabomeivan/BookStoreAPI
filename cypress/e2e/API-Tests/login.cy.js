@@ -5,7 +5,7 @@ describe('Login', () => {
   it('Test user can login with invalid credentials', () => {
       cy.request({
         method: 'POST',
-        url: '/login', // adjusted to match your Express route structure
+        url: '/api/users/login', // adjusted to match your Express route structure
         failOnStatusCode: false,
         body: {
           email: invalidCreds.email,
@@ -22,7 +22,7 @@ describe('Login', () => {
   it('Test user can login with no credentials', () => {
       cy.request({
         method: 'POST',
-        url: '/login', // adjusted to match your Express route structure
+        url: '/api/users/login', // adjusted to match your Express route structure
         failOnStatusCode: false,
         body: {
           email: "",
@@ -40,7 +40,7 @@ describe('Login', () => {
     
       cy.request({
         method: 'POST',
-        url: '/login', // adjusted to match your Express route structure
+        url: '/api/users/login', // adjusted to match your Express route structure
         failOnStatusCode: false,
         body: {
           email: validCreds.email,

@@ -7,61 +7,40 @@ on:
     branches: [main, develop]
 
 jobs:
-  test_backend:
+  TestApplicationFunctionality:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:6.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd="mongosh --eval 'db.adminCommand({ ping: 1 })'"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=5
-    env:
-      MONGODB_URL: mongodb://127.0.0.1:27017/bookstore_test
-      JWT_SECRET: examplesecret  # override with a secret if your app needs it
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node 16 and cache
-        uses: actions/setup-node@v4
+      - name: Clone code repository
+        uses: actions/checkout@v2
+      - name: Installing Node
+        uses: actions/setup-node@v2
         with:
-          node-version: 16
-          cache: 'npm'
+          node-version: "22"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Installing dependencies
+        run: npm install
+      
+      - name: Installing mongodb
+        run: npm install mongodb
 
-      - name: Wait for MongoDB to be ready
-        run: |
-          echo "Waiting for MongoDB..."
-          for i in {1..30}; do
-            if mongo --host localhost --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; then
-              echo "MongoDB is up"
-              break
-            fi
-            echo "Retrying MongoDB..."
-            sleep 2
-          done
+      - name: Installing wait-on
+        run:  npm install -g wait-on 
 
-      - name: Start backend in background
-        run:  npm start &
-         
+      - name: Start Local Dev Server
+        run: nohup npm start &
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+
       - name: Wait for the server to start
         run: npx wait-on http://localhost:5000
 
-      - name: Run Cypress API tests
+      - name: Run Cypress Tests
         run: npm run test
 
-  deploy:
-    needs: test_backend
-    if: github.ref == 'refs/heads/main'
+  DeployChanges:
     runs-on: ubuntu-latest
+    needs: TestApplicationFunctionality
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Trigger deployment hook
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: Trigger Render Deployment
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

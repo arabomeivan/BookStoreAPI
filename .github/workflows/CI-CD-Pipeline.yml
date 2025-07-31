@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  TestApplicationFunctionality:
+  test_backend:
     runs-on: ubuntu-latest
     services:
       mongodb:
@@ -20,15 +20,13 @@ jobs:
           --health-timeout=5s
           --health-retries=5
     env:
-      # Point to the locally running MongoDB service
       MONGODB_URL: mongodb://127.0.0.1:27017/bookstore_test
-      # include other secrets if needed, e.g. JWT_SECRET
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_SECRET: examplesecret  # override with a secret if your app needs it
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js 16 and cache npm
+      - name: Set up Node 16 and cache
         uses: actions/setup-node@v4
         with:
           node-version: 16
@@ -37,48 +35,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Wait for MongoDB to be healthy
+      - name: Wait for MongoDB to be ready
         run: |
-          echo "Waiting for MongoDB to be ready..."
+          echo "Waiting for MongoDB..."
           for i in {1..30}; do
             if mongo --host localhost --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; then
               echo "MongoDB is up"
               break
             fi
-            echo "MongoDB not ready yet, retrying..."
+            echo "Retrying MongoDB..."
             sleep 2
           done
 
-      - name:  Seed test data
-        run: |
-          # If you have a seeding script, invoke it here.
-          # Example: node scripts/seedTestData.js
-          echo "Skipping seeding unless script exists."
-
-      - name: Start backend server in background
+      - name: Start backend in background
         run: |
           npm start &
-          # wait for the server to become reachable
+          echo "Waiting for backend to be up..."
           n=0
           until curl --silent --fail http://localhost:5000/health || [ $n -ge 30 ]; do
-            echo "Waiting for backend to be up..."
             n=$((n+1))
+            echo "Backend not ready yet ($n/30)..."
             sleep 2
           done
           if [ $n -ge 30 ]; then
-            echo "Backend did not start in time" >&2
+            echo "Backend failed to start in time" >&2
             exit 1
           fi
+          echo "Backend is up."
 
       - name: Run Cypress API tests
         run: npm run test
 
-  DeployChanges:
-    needs: TestApplicationFunctionality
+  deploy:
+    needs: test_backend
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render Deployment
+      - name: Trigger deployment hook
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

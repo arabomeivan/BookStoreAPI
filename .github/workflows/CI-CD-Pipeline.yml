@@ -29,10 +29,10 @@ jobs:
 
       - name: Start Local Dev Server
         run: |
-          nohup npm start > server.log 2>&1 &
+          nohup npm start &
 
       - name: Wait for Server to Be Ready
-        run: npx wait-on http://localhost:5000
+        run: npm wait-on http://localhost:5000
 
       - name: Check Server Logs for MongoDB Connection
         run: |

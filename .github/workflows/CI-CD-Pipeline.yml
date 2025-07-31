@@ -32,6 +32,10 @@ jobs:
       - name: Start Local Dev Server
         run: nohup npm start &
 
+      - name: Wait for server
+        run: npx wait-on http://localhost:5000
+
+
       - name: Run Cypress Tests
         run: npm run test
 

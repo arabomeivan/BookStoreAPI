@@ -29,7 +29,7 @@ jobs:
       - name: Start Local Dev Server
         run: nohup npm start &
         env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+          MONGODB_URL: ${{ secrets.MONGODB_URL }}
 
       - name: Wait for the server to start
         run: npx wait-on http://localhost:5000

@@ -9,33 +9,46 @@ on:
 jobs:
   TestApplicationFunctionality:
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      # add other required secrets here, e.g. JWT_SECRET, etc.
     steps:
-      - name: Clone code repository
-        uses: actions/checkout@v2
-      - name: Installing Node
-        uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 16 and cache npm
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
+          node-version: 16
+          cache: 'npm'
 
-      - name: Installing dependencies
-        run: npm install
-
-      
-      - name: Start Local Dev Server
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env
+          # If your .env.example uses placeholders like ${MONGODB_URL}, substitute them:
+          # This requires that the placeholders are in shell-expandable form.
+          envsubst < .env.example > .env || true
         env:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
-        run: nohup npm start &
+          # include any other secret here that needs injecting into .env
 
-      - name: Wait for the server to start
-        run: npx wait-on http://localhost:5000
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Run Cypress Tests
+      - name: Start local API server in background and wait for readiness
+        run: |
+          npm start &                    # launch server in background
+          npx wait-on http://localhost:5000 --timeout 60000
+        # adjust the URL and port if your API listens elsewhere
+
+      - name: Run Cypress API tests
         run: npm run test
+        # make sure "test" in package.json invokes Cypress, e.g. "cypress run"
 
   DeployChanges:
-    runs-on: ubuntu-latest
     needs: TestApplicationFunctionality
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deployment
         env:

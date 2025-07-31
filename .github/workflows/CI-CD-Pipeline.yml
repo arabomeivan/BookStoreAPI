@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: Start Local Dev Server
-        run: nohup npm start > server.log 2>&1 &
+        run: nohup npm start &
 
       - name: Run Cypress Tests
         run: npm run test

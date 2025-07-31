@@ -2,17 +2,14 @@ name: CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
 
 jobs:
   TestAPIEndpoints:
     runs-on: ubuntu-latest
-    environment: production
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,20 +28,31 @@ jobs:
         run: npm install
 
       - name: Start Local Dev Server
-        run: nohup npm start &
+        run: |
+          nohup npm start > server.log 2>&1 &
 
-      - name: Wait for server
+      - name: Wait for Server to Be Ready
         run: npx wait-on http://localhost:5000
 
+      - name: Check Server Logs for MongoDB Connection
+        run: |
+          sleep 2
+          if ! grep -q "Database Connected" server.log; then
+            echo "MongoDB did not connect"
+            cat server.log
+            exit 1
+          else
+            echo "MongoDB Connected"
+          fi
 
       - name: Run Cypress Tests
         run: npm run test
 
   DeployChanges:
     runs-on: ubuntu-latest
-    environment: production
     needs: TestAPIEndpoints
     if: github.ref == 'refs/heads/main'
+
     steps:
       - name: Trigger Render Deployment
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

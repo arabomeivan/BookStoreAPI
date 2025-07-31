@@ -1,4 +1,5 @@
 name: CI/CD
+
 on:
   push:
     branches:
@@ -9,30 +10,32 @@ on:
       - develop
 
 jobs:
-  
   TestAPIEndpoints:
     runs-on: ubuntu-latest
-    if: always()
     steps:
-      - name: Clone code repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Installing Node
-        uses: actions/setup-node@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: "22"
+          node-version: '22'
 
-      - name: Inject environment variables into .env
+      - name: Inject environment variables
         run: |
           echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "PORT=5000"
+          echo "PORT=5000" >> .env
 
-      - name: Installing dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Start Local Dev Server
-        run: nohup npm start &
+        run: nohup npm start > server.log 2>&1 &
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server on http://localhost:5000..."
+          npx wait-on --timeout=10000 http://localhost:5000 || (echo "Server failed to start" && cat server.log && exit 1)
 
       - name: Run Cypress Tests
         run: npm run test
@@ -43,4 +46,4 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Trigger Render Deployment
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

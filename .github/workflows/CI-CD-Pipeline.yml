@@ -48,20 +48,10 @@ jobs:
           done
 
       - name: Start backend in background
-        run: |
-          npm start &
-          echo "Waiting for backend to be up..."
-          n=0
-          until curl --silent --fail http://localhost:5000/health || [ $n -ge 30 ]; do
-            n=$((n+1))
-            echo "Backend not ready yet ($n/30)..."
-            sleep 2
-          done
-          if [ $n -ge 30 ]; then
-            echo "Backend failed to start in time" >&2
-            exit 1
-          fi
-          echo "Backend is up."
+        run:  npm start &
+         
+      - name: Wait for the server to start
+        run: npx wait-on http://localhost:3000
 
       - name: Run Cypress API tests
         run: npm run test

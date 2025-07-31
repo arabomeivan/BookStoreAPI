@@ -12,6 +12,7 @@ on:
 jobs:
   TestAPIEndpoints:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -41,6 +42,7 @@ jobs:
 
   DeployChanges:
     runs-on: ubuntu-latest
+    environment: production
     needs: TestAPIEndpoints
     if: github.ref == 'refs/heads/main'
     steps:

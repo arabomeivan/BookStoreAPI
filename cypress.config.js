@@ -6,6 +6,6 @@ module.exports = defineConfig({
       // implement node event listeners here
        // Ensure this matches your server's URL
     },
-    baseUrl: 'http://localhost:5000',
+    baseUrl: 'https://bookstoreapi-q86w.onrender.com',
   },
 });

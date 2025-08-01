@@ -19,6 +19,11 @@ jobs:
 
       - name: Installing dependencies
         run: npm install
+      - name: Start Local Dev Server
+        run: nohup npm start &
+
+      - name: Wait for the server to start
+        run: npx wait-on http://localhost:5000
 
       - name: Run Cypress Tests
         run: npm run test

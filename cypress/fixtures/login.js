@@ -4,8 +4,8 @@ const invalidCreds={
 }
 
 const validCreds={
-  "email": "arabomeivan@gmail.com",
-  "password": "AtleticoMadrid_2."
+  "email": "arabomeivan@protonmail.com",
+  "password": "Atleticomadrid_2."
 }
 
 export { invalidCreds, validCreds };

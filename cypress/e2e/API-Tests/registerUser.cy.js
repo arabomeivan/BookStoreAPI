@@ -42,7 +42,7 @@ describe('Registering User', () => {
   
 
   it('Test user registers with valid data using dynamic email', () => {
-  cy.fixture('/api/users/register').then((registerData) => {
+  cy.fixture('register').then((registerData) => {
     // Add timestamp to email to avoid duplicate registration
     const dynamicEmail = `testuser${Date.now()}@example.com`;
 
@@ -57,11 +57,7 @@ describe('Registering User', () => {
       method: 'POST',
       url: '/api/users/register',
       failOnStatusCode: false,
-      body: {
-        name: user.name,
-        email: user.email,
-        password: user.password
-      }
+      body: user
     }).should((response) => {
       expect(response.status).to.eq(201);
       expect(response.body).to.have.property('success', true);

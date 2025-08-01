@@ -36,20 +36,20 @@ describe('Login', () => {
     
   });
 
-  // it('Test user can login with valid credentials', () => {
+  it('Test user can login with valid credentials', () => {
     
-  //     cy.request({
-  //       method: 'POST',
-  //       url: '/api/users/login', // adjusted to match your Express route structure
-  //       failOnStatusCode: false,
-  //       body: {
-  //         email: validCreds.email,
-  //         password: validCreds.password
-  //       }
-  //     }).should((response) => {
-  //       expect(response.status).to.eq(201);
-  //       expect(response.body).to.have.property('success', true);
-  //       expect(response.body).to.have.property('message', 'User not found');
-  //     });
-  // });
+      cy.request({
+        method: 'POST',
+        url: '/api/users/login', // adjusted to match your Express route structure
+        failOnStatusCode: false,
+        body: {
+          email: validCreds.email,
+          password: validCreds.password
+        }
+      }).should((response) => {
+        expect(response.status).to.eq(200);
+        expect(response.body).to.have.property('success', true);
+        expect(response.body).to.have.property('message', 'Login successful');
+      });
+  });
 });

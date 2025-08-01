@@ -51,7 +51,7 @@ describe('User API Functionality', () => {
   });
 
   // Edit the user that do not exist
-  it('Edits user with one updated field (e.g., name only)', () => {
+  it('Edits user that do not exist with invalid id', () => {
     cy.fixture('user').then((user) => {
      cy.request({
       method: 'PUT',

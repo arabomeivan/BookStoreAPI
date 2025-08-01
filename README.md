@@ -67,7 +67,7 @@ This will launch the API locally, typically on `http://localhost:5000` or the po
 
 ## API Testing
 
-Automated API tests are written using **Cypress** and follow a **data-driven testing approach** using JSON test data the test coverage only covers user module. To test if user can login, register and read, edit and delete. Note: baseroute is set to staging URL because of CI... because of atlas local server can't be launched so it is assumed tests mitigate bugs against production deployment
+Automated API tests are written using **Cypress** and follow a **data-driven testing approach** using JSON test data the test coverage only covers user module. To test if user can login, register and read, edit and delete.
 
 ### Sample Test Data
 
@@ -91,9 +91,10 @@ This command will execute all Cypress-based API tests locally in headless mode.
 
 CI is configured using GitHub Actions. Each time code is pushed or a pull request is created:
 
-* The environment is set up (Node 16)
+* The environment is set up (Node 22)
 * Dependencies are installed
-* Cypress API tests are executed
+* Runs Server Locally
+* Cypress API tests are executed against local server to mitigate bugs promoted to staging (https://bookstoreapi-q86w.onrender.com)
 
 Deployment or further workflows only proceed if all tests pass, ensuring that the API remains stable and fully tested.
 

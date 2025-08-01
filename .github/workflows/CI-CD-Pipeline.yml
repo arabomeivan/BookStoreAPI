@@ -22,8 +22,13 @@ jobs:
 
       - name: Installing dependencies
         run: npm install
+
+      - name: Install wait-on
+        run: npm install -g wait-on
+
       - name: Start Local Dev Server
         run: nohup npm start &
+            echo "Server started in background"
 
       - name: Wait for the server to start
         run: npx wait-on http://localhost:5000

@@ -8,6 +8,10 @@ const { default: mongoose } = require("mongoose");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 5000;
+app.get('/', (req, res) => {
+  res.send('✅ Server is live!');
+});
+
 
 // Import Routes
 const userRoutes = require("./routes/userRoutes");

@@ -1,7 +1,7 @@
 
 # Bookstore API Backend
 
-This is a backend API service for a Bookstore application. It supports user registration, login, and full CRUD operations for books. The project also includes automated API tests written in Cypress, with continuous integration configured to run all tests on each update.
+This is a backend API servicee for a Bookstore application. It supports user registration, login, and full CRUD operations for books. The project also includes automated API tests written in Cypress, with continuous integration configured to run all tests on each update.
 
 ---
 
